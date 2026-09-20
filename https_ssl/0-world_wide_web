@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Displays DNS record type and destination for a domain's subdomains.
+# shellcheck disable=SC2086
+
+domain=$1
+subdomain=$2
+
+print_subdomain_info() {
+    local sub=$1
+    local record_type
+    local destination
+
+    read -r record_type destination <<< "$(dig "$sub.$domain" \
+        | awk '/^;; ANSWER SECTION:/{getline; print $4, $5}')"
+
+    echo "The subdomain $sub is a $record_type record and points to $destination"
+}
+
+if [ -n "$subdomain" ]; then
+    print_subdomain_info "$subdomain"
+else
+    for sub in www lb-01 web-01 web-02; do
+        print_subdomain_info "$sub"
+    done
+fi
